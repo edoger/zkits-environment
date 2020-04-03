@@ -12,48 +12,55 @@ Generally, no additional work is needed to realize the type of runtime environme
 between the various components of the application.
 
 ## Usage ##
-1. Import package.
-   ```sh
-   go get -u -v github.com/edoger/zkits-environment
-   ```
-2. Example.
-   ```go
-   package main
-   
-   import (
+
+ 1. Import package.
+ 
+    ```sh
+    go get -u -v github.com/edoger/zkits-environment
+    ```
+    
+ 2. Example.
+ 
+    ```go
+    package main
+    
+    import (
        "flag"
-   
+    
        "github.com/edoger/zkits-environment"
-   )
-   
-   func main() {
+    )
+    
+    func main() {
        var env string
        flag.StringVar(&env, "env", "", "The runtime environment")
        flag.Parse()
-   
+    
        // Set the runtime environment value.
        // If the given runtime environment is not registered, an error is returned.
        err := environment.Set(environment.Env(env))
        if err != nil {
            // Handle error.
        }
-   
+    
        // Get the current runtime environment.
        // If it has never been set, then you get the environment.Development by default.
        environment.Get()
-   
+    
        // Not enough built-in runtime environment?
        // Register functions can register any custom runtime environment.
        // Note: Registration must be before setup.
        environment.Register("foo")
-   }
-   ```
-3. These are the runtime environments that are already built in and registered.
-   ```
-   environment.Development  // "development"
-   environment.Testing      // "testing"
-   environment.Prerelease   // "prerelease"
-   environment.Production   // "production"
-   ```
+    }
+    ```
+
+ 3. These are the runtime environments that are already built in and registered.
+    ```
+    environment.Development  // "development"
+    environment.Testing      // "testing"
+    environment.Prerelease   // "prerelease"
+    environment.Production   // "production"
+    ```
+
 ## License ##
+
 [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0)
