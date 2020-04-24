@@ -15,36 +15,109 @@
 package environment
 
 import (
+	"sync/atomic"
 	"testing"
 )
 
-func TestEnvironment(t *testing.T) {
+func doTestEnvironment(f func()) {
+	// Oh, we still need to restore the scene!
 	defer func() {
 		current = Development
+		atomic.StoreInt32(&locked, 0)
 		supported = []Env{Development, Testing, Prerelease, Production}
 	}()
 
-	if got := Get(); got != Development {
-		t.Fatal(got)
-	}
+	f()
+}
 
-	envs := []Env{Development, Testing, Prerelease, Production}
-	for i, j := 0, len(envs); i < j; i++ {
-		if err := Set(envs[i]); err != nil {
+func TestEnvironment(t *testing.T) {
+	// Copy from supported.
+	list := []Env{Development, Testing, Prerelease, Production}
+
+	doTestEnvironment(func() {
+		// The default runtime environment is Development!
+		if got := Get(); got != Development {
+			t.Fatal(got)
+		}
+
+		for _, env := range list {
+			if err := Set(env); err != nil {
+				t.Fatal(err)
+			}
+			if got := Get(); got != env {
+				t.Fatal(got)
+			}
+		}
+
+		if err := Set("foo"); err == nil {
+			t.Fatal("No error")
+		} else {
+			if err != ErrInvalidEnv {
+				t.Fatal(err)
+			}
+		}
+
+		Register("foo")
+
+		if err := Set("foo"); err != nil {
 			t.Fatal(err)
 		}
-	}
 
-	if err := Set("foo"); err == nil {
-		t.Fatal(`Set("foo")`)
-	} else {
-		if err != ErrInvalidEnv {
+		if Locked() {
+			t.Fatal("Locked")
+		}
+
+		Lock()
+
+		if !Locked() {
+			t.Fatal("Not Locked")
+		}
+		for _, env := range list {
+			if err := Set(env); err == nil {
+				t.Fatal("No error")
+			} else {
+				if err != ErrLocked {
+					t.Fatal(err)
+				}
+			}
+		}
+		if err := Set("foo"); err == nil {
+			t.Fatal("No error")
+		} else {
+			if err != ErrLocked {
+				t.Fatal(err)
+			}
+		}
+	})
+}
+
+func TestSetAndLock(t *testing.T) {
+	doTestEnvironment(func() {
+		if Locked() {
+			t.Fatal("Locked")
+		}
+
+		// The default runtime environment is Development!
+		if got := Get(); got != Development {
+			t.Fatal(got)
+		}
+
+		if err := SetAndLock(Testing); err != nil {
 			t.Fatal(err)
 		}
-	}
+		if !Locked() {
+			t.Fatal("Not Locked")
+		}
+		if got := Get(); got != Testing {
+			t.Fatal(got)
+		}
 
-	Register("foo")
-	if err := Set("foo"); err != nil {
-		t.Fatal(err)
-	}
+		if err := SetAndLock(Production); err == nil {
+			t.Fatal("No error")
+		} else {
+			if err != ErrLocked {
+				t.Fatal(err)
+			}
+		}
+	})
 }

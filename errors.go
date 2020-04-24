@@ -20,4 +20,8 @@ import (
 
 // ErrInvalidEnv represents that the given runtime environment is not
 // registered or supported.
-var ErrInvalidEnv = errors.New("invalid environment")
+var ErrInvalidEnv = errors.New("invalid runtime environment")
+
+// ErrLocked indicates that the current runtime environment is locked
+// and cannot be changed.
+var ErrLocked = errors.New("locked runtime environment")

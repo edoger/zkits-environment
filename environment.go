@@ -16,14 +16,18 @@ package environment
 
 import (
 	"sync"
+	"sync/atomic"
 )
 
 var (
 	// Mutex when operating on the current runtime environment.
-	mutex sync.Mutex
+	mutex sync.RWMutex
 
 	// The current environment.
 	current = Development
+
+	// Is the current runtime environment locked?
+	locked = int32(0)
 
 	// List of supported environments.
 	supported = []Env{Development, Testing, Prerelease, Production}
@@ -31,6 +35,9 @@ var (
 
 // Get returns the current runtime environment.
 func Get() Env {
+	mutex.RLock()
+	defer mutex.RUnlock()
+
 	return current
 }
 
@@ -46,16 +53,52 @@ func Register(env Env) {
 	}
 }
 
+// Lock locks the current runtime environment.
+// After locking, the current runtime environment cannot be changed.
+func Lock() {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	atomic.StoreInt32(&locked, 1)
+}
+
+// Locked returns whether the current runtime environment is locked.
+func Locked() bool {
+	return atomic.LoadInt32(&locked) == 1
+}
+
 // Set sets the current runtime environment.
-// If the given environment is not supported, an ErrInvalidEnv error is returned.
+// If the given runtime environment is not supported, ErrInvalidEnv error is returned.
+// If the current runtime environment is locked, ErrLocked error is returned.
 func Set(env Env) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
+	return doSet(env)
+}
+
+func doSet(env Env) error {
+	if Locked() {
+		return ErrLocked
+	}
 	if !env.In(supported) {
 		return ErrInvalidEnv
 	}
 
 	current = env
+	return nil
+}
+
+// SetAndLock sets and locks the current runtime environment.
+// If the runtime environment settings fail, they are not locked.
+func SetAndLock(env Env) error {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if err := doSet(env); err != nil {
+		return err
+	}
+
+	atomic.StoreInt32(&locked, 1)
 	return nil
 }
