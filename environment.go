@@ -14,91 +14,64 @@
 
 package environment
 
-import (
-	"sync"
-	"sync/atomic"
+const (
+	// Development is the development environment, which is also the default
+	// runtime environment.
+	Development Env = "development"
+	// Testing is a test environment, usually used for initial quality acceptance.
+	Testing Env = "testing"
+	// Prerelease is a pre release environment, usually used for grayscale
+	// testing or quality acceptance.
+	Prerelease Env = "prerelease"
+	// Production is the production environment and the final deployment
+	// environment of the application.
+	Production Env = "production"
 )
 
-var (
-	// Mutex when operating on the current runtime environment.
-	mutex sync.RWMutex
+// The global default runtime environment manager.
+var defaultManager = New()
 
-	// The current environment.
-	current = Development
+// Env type defines the runtime environment.
+type Env string
 
-	// Is the current runtime environment locked?
-	locked = int32(0)
+// String method returns the current runtime environment string.
+func (e Env) String() string { return string(e) }
 
-	// List of supported environments.
-	supported = []Env{Development, Testing, Prerelease, Production}
-)
+// Is method returns whether the given runtime environment is equal to the
+// current runtime environment.
+func (e Env) Is(env Env) bool { return e == env }
+
+// In method returns whether the current runtime environment is in the given
+// runtime environment list.
+func (e Env) In(envs []Env) bool {
+	for i, j := 0, len(envs); i < j; i++ {
+		if e.Is(envs[i]) {
+			return true
+		}
+	}
+	return false
+}
 
 // Get returns the current runtime environment.
-func Get() Env {
-	mutex.RLock()
-	defer mutex.RUnlock()
-
-	return current
-}
+func Get() Env { return defaultManager.Get() }
 
 // Register registers a custom runtime environment.
 // If you want to add a custom environment, this method must be called
 // before the Set() method.
-func Register(env Env) {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	if !env.In(supported) {
-		supported = append(supported, env)
-	}
-}
+func Register(env Env) { defaultManager.Register(env) }
 
 // Lock locks the current runtime environment.
 // After locking, the current runtime environment cannot be changed.
-func Lock() {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	atomic.StoreInt32(&locked, 1)
-}
+func Lock() { defaultManager.Lock() }
 
 // Locked returns whether the current runtime environment is locked.
-func Locked() bool {
-	return atomic.LoadInt32(&locked) == 1
-}
+func Locked() bool { return defaultManager.Locked() }
 
 // Set sets the current runtime environment.
 // If the given runtime environment is not supported, ErrInvalidEnv error is returned.
 // If the current runtime environment is locked, ErrLocked error is returned.
-func Set(env Env) error {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	return doSet(env)
-}
-
-func doSet(env Env) error {
-	if Locked() {
-		return ErrLocked
-	}
-	if !env.In(supported) {
-		return ErrInvalidEnv
-	}
-
-	current = env
-	return nil
-}
+func Set(env Env) error { return defaultManager.Set(env) }
 
 // SetAndLock sets and locks the current runtime environment.
 // If the runtime environment settings fail, they are not locked.
-func SetAndLock(env Env) error {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	if err := doSet(env); err != nil {
-		return err
-	}
-
-	atomic.StoreInt32(&locked, 1)
-	return nil
-}
+func SetAndLock(env Env) error { return defaultManager.SetAndLock(env) }

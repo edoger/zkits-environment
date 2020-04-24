@@ -15,31 +15,61 @@
 package environment
 
 import (
-	"sync/atomic"
 	"testing"
 )
 
-func doTestEnvironment(f func()) {
-	// Oh, we still need to restore the scene!
-	defer func() {
-		current = Development
-		atomic.StoreInt32(&locked, 0)
-		supported = []Env{Development, Testing, Prerelease, Production}
-	}()
+func TestEnv_String(t *testing.T) {
+	var env Env
+	if got := env.String(); got != "" {
+		t.Fatal(got)
+	}
 
+	env = "test"
+	if got := env.String(); got != "test" {
+		t.Fatal(got)
+	}
+}
+
+func TestEnv_Is(t *testing.T) {
+	var env Env
+	if !env.Is("") {
+		t.Fatal("FALSE")
+	}
+
+	env = "test"
+	if !env.Is("test") {
+		t.Fatal("FALSE")
+	}
+}
+
+func TestEnv_In(t *testing.T) {
+	var env Env
+	if env.In(nil) {
+		t.Fatal("TRUE")
+	}
+
+	env = "test"
+	if !env.In([]Env{"test"}) {
+		t.Fatal("FALSE")
+	}
+}
+
+func doTestDefaultManager(t *testing.T, f func()) {
+	if defaultManager == nil {
+		t.Fatal("Default manager is nil")
+	}
+	defer func() { defaultManager = New() }()
 	f()
 }
 
-func TestEnvironment(t *testing.T) {
-	// Copy from supported.
-	list := []Env{Development, Testing, Prerelease, Production}
-
-	doTestEnvironment(func() {
+func TestDefaultManager(t *testing.T) {
+	doTestDefaultManager(t, func() {
 		// The default runtime environment is Development!
 		if got := Get(); got != Development {
 			t.Fatal(got)
 		}
 
+		list := []Env{Development, Testing, Prerelease, Production}
 		for _, env := range list {
 			if err := Set(env); err != nil {
 				t.Fatal(err)
@@ -58,7 +88,6 @@ func TestEnvironment(t *testing.T) {
 		}
 
 		Register("foo")
-
 		if err := Set("foo"); err != nil {
 			t.Fatal(err)
 		}
@@ -68,10 +97,10 @@ func TestEnvironment(t *testing.T) {
 		}
 
 		Lock()
-
 		if !Locked() {
 			t.Fatal("Not Locked")
 		}
+
 		for _, env := range list {
 			if err := Set(env); err == nil {
 				t.Fatal("No error")
@@ -89,10 +118,8 @@ func TestEnvironment(t *testing.T) {
 			}
 		}
 	})
-}
 
-func TestSetAndLock(t *testing.T) {
-	doTestEnvironment(func() {
+	doTestDefaultManager(t, func() {
 		if Locked() {
 			t.Fatal("Locked")
 		}
