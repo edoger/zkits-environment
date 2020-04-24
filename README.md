@@ -11,6 +11,15 @@ This library provides the function of managing the runtime environment for the a
 Generally, no additional work is needed to realize the type of runtime environment shared 
 between the various components of the application.
 
+## Why? ##
+
+Each component in an application usually needs to have different behaviors (such as more detailed log output) 
+in different runtime environments. 
+However, it is quite tedious for each component to maintain a set of runtime environment. 
+In some large-scale applications, it is impossible to do so. 
+This library is to solve this problem. 
+Let's run it in the application The row time environment is managed in a unified way.
+
 ## Usage ##
 
  1. Import package.
