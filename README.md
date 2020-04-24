@@ -18,7 +18,7 @@ in different runtime environments.
 However, it is quite tedious for each component to maintain a set of runtime environment. 
 In some large-scale applications, it is impossible to do so. 
 This library is to solve this problem. 
-Let's run it in the application The row time environment is managed in a unified way.
+Let's manage the runtime environment more conveniently within the application.
 
 ## Usage ##
 
