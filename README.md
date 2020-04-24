@@ -52,13 +52,26 @@ Let's run it in the application The row time environment is managed in a unified
        }
     
        // Get the current runtime environment.
-       // If it has never been set, then you get the environment.Development by default.
+       // If the given runtime environment is not supported, ErrInvalidEnv error is returned.
+       // If the current runtime environment is locked, ErrLocked error is returned.
        environment.Get()
     
        // Not enough built-in runtime environment?
        // Register functions can register any custom runtime environment.
        // Note: Registration must be before setup.
        environment.Register("foo")
+       
+       // Locking the current runtime environment does not allow changes.
+       environment.Lock()
+       // Determines whether the current runtime environment is locked.
+       environment.Locked()
+       
+       // Sets and locks the current runtime environment.
+       // If the runtime environment settings fail, they are not locked.
+       err = environment.SetAndLock(environment.Env(env))
+       if err != nil {
+           // Handle error.
+       }
     }
     ```
 
