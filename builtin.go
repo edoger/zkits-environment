@@ -15,8 +15,18 @@
 package environment
 
 const (
+	// Development is the development environment, which is also the default
+	// runtime environment.
 	Development Env = "development"
-	Testing     Env = "testing"
-	Prerelease  Env = "prerelease"
-	Production  Env = "production"
+
+	// Testing is a test environment, usually used for initial quality acceptance.
+	Testing Env = "testing"
+
+	// Prerelease is a pre release environment, usually used for grayscale
+	// testing or quality acceptance.
+	Prerelease Env = "prerelease"
+
+	// Production is the production environment and the final deployment
+	// environment of the application.
+	Production Env = "production"
 )

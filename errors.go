@@ -18,6 +18,6 @@ import (
 	"errors"
 )
 
-// Invalid environmental error.
-// This error is returned when the environment being set is not supported.
+// ErrInvalidEnv represents that the given runtime environment is not
+// registered or supported.
 var ErrInvalidEnv = errors.New("invalid environment")

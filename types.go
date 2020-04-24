@@ -14,15 +14,18 @@
 
 package environment
 
-// The type of runtime environment.
+// Env type defines the runtime environment.
 type Env string
 
+// String method returns the current runtime environment string.
 func (e Env) String() string { return string(e) }
 
+// Is method returns whether the given runtime environment is equal to the
+// current runtime environment.
 func (e Env) Is(env Env) bool { return e == env }
 
-// Determines whether the current environment is included
-// in the given environment list.
+// In method returns whether the current runtime environment is in the given
+// runtime environment list.
 func (e Env) In(envs []Env) bool {
 	for i, j := 0, len(envs); i < j; i++ {
 		if e.Is(envs[i]) {

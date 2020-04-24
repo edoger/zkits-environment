@@ -19,19 +19,24 @@ import (
 )
 
 var (
-	mutex     sync.Mutex    // Mutex when operating on the environment.
-	current   = Development // The current environment.
-	supported = []Env{      // List of supported environments.
-		Development, Testing, Prerelease, Production,
-	}
+	// Mutex when operating on the current runtime environment.
+	mutex sync.Mutex
+
+	// The current environment.
+	current = Development
+
+	// List of supported environments.
+	supported = []Env{Development, Testing, Prerelease, Production}
 )
 
-// Get the current environment.
-func Get() Env { return current }
+// Get returns the current runtime environment.
+func Get() Env {
+	return current
+}
 
-// Register a custom environment.
-// If you want to add a custom environment,
-// this method must be called before the Set() method.
+// Register registers a custom runtime environment.
+// If you want to add a custom environment, this method must be called
+// before the Set() method.
 func Register(env Env) {
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -41,16 +46,16 @@ func Register(env Env) {
 	}
 }
 
-// Set the current environment.
-// If the given environment is not supported,
-// an ErrInvalidEnv error is returned.
+// Set sets the current runtime environment.
+// If the given environment is not supported, an ErrInvalidEnv error is returned.
 func Set(env Env) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	if env.In(supported) {
-		current = env
-		return nil
+	if !env.In(supported) {
+		return ErrInvalidEnv
 	}
-	return ErrInvalidEnv
+
+	current = env
+	return nil
 }
