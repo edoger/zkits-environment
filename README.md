@@ -45,15 +45,14 @@ Let's manage the runtime environment more conveniently within the application.
        flag.Parse()
     
        // Set the runtime environment value.
-       // If the given runtime environment is not registered, an error is returned.
+       // If the given runtime environment is not supported, ErrInvalidEnv error is returned.
+       // If the current runtime environment is locked, ErrLocked error is returned.
        err := environment.Set(environment.Env(env))
        if err != nil {
            // Handle error.
        }
     
        // Get the current runtime environment.
-       // If the given runtime environment is not supported, ErrInvalidEnv error is returned.
-       // If the current runtime environment is locked, ErrLocked error is returned.
        environment.Get()
     
        // Not enough built-in runtime environment?
