@@ -50,6 +50,8 @@ type Manager interface {
 	// SetAndLock method sets and locks the current runtime environment.
 	// If the runtime environment settings fail, they are not locked.
 	SetAndLock(Env) error
+	// Listen method adds a given runtime environment listener.
+	Listen(Listener)
 }
 
 // New creates and returns a new instance of the built-in runtime environment manager.
@@ -62,12 +64,17 @@ func New() Manager {
 	}
 }
 
+// Listener defines the runtime environment listener.
+// Listeners are used to receive notifications when the runtime environment changes.
+type Listener func(current, old Env)
+
 // This is a built-in runtime environment manager.
 type manager struct {
 	mutex      sync.RWMutex
 	current    Env
 	locked     int32
 	registered []Env
+	listeners  []Listener
 }
 
 // Get method returns the current runtime environment.
@@ -137,6 +144,20 @@ func (m *manager) set(env Env) error {
 		return ErrInvalidEnv
 	}
 
-	m.current = env
+	if old := m.current; !old.Is(env) {
+		m.current = env
+		// Trigger all listeners synchronously.
+		for i, j := 0, len(m.listeners); i < j; i++ {
+			m.listeners[i](env, old)
+		}
+	}
 	return nil
+}
+
+// Listen method adds a given runtime environment listener.
+func (m *manager) Listen(listener Listener) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	m.listeners = append(m.listeners, listener)
 }

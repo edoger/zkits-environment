@@ -75,3 +75,6 @@ func Set(env Env) error { return defaultManager.Set(env) }
 // SetAndLock sets and locks the current runtime environment.
 // If the runtime environment settings fail, they are not locked.
 func SetAndLock(env Env) error { return defaultManager.SetAndLock(env) }
+
+// Listen adds a given runtime environment listener.
+func Listen(listener Listener) { defaultManager.Listen(listener) }

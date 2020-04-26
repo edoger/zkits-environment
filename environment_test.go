@@ -147,4 +147,32 @@ func TestDefaultManager(t *testing.T) {
 			}
 		}
 	})
+
+	doTestDefaultManager(t, func() {
+		var n int
+		Listen(func(current, old Env) {
+			if current != Testing {
+				t.Fatal(current)
+			}
+			if old != Development {
+				t.Fatal(old)
+			}
+			n = 1
+		})
+
+		// The default runtime environment is Development!
+		if got := Get(); got != Development {
+			t.Fatal(got)
+		}
+		if err := Set(Testing); err != nil {
+			t.Fatal(err)
+		}
+		if got := Get(); got != Testing {
+			t.Fatal(got)
+		}
+
+		if n != 1 {
+			t.Fatal(n)
+		}
+	})
 }
