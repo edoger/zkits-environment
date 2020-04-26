@@ -22,59 +22,109 @@ Let's manage the runtime environment more conveniently within the application.
 
 ## Usage ##
 
- 1. Import package.
+ 1. Install package.
  
     ```sh
     go get -u -v github.com/edoger/zkits-environment
     ```
-    
- 2. Example.
+ 
+ 2. Simply get and set up the global runtime environment.
  
     ```go
     package main
-    
+        
     import (
-       "flag"
-    
        "github.com/edoger/zkits-environment"
     )
     
     func main() {
-       var env string
-       flag.StringVar(&env, "env", "", "The runtime environment")
-       flag.Parse()
-    
+       // Get the current runtime environment.
+       environment.Get() 
        // Set the runtime environment value.
        // If the given runtime environment is not supported, ErrInvalidEnv error is returned.
        // If the current runtime environment is locked, ErrLocked error is returned.
-       err := environment.Set(environment.Env(env))
-       if err != nil {
-           // Handle error.
-       }
-    
-       // Get the current runtime environment.
-       environment.Get()
-    
-       // Not enough built-in runtime environment?
-       // Register functions can register any custom runtime environment.
-       // Note: Registration must be before setup.
-       environment.Register("foo")
-       
-       // Locking the current runtime environment does not allow changes.
-       environment.Lock()
-       // Determines whether the current runtime environment is locked.
-       environment.Locked()
-       
-       // Sets and locks the current runtime environment.
-       // If the runtime environment settings fail, they are not locked.
-       err = environment.SetAndLock(environment.Env(env))
+       err := environment.Set(environment.Testing)
        if err != nil {
            // Handle error.
        }
     }
     ```
+ 
+ 3. How do I customize the runtime environment?
+ 
+    ```go
+     package main
+         
+     import (
+        "github.com/edoger/zkits-environment"
+     )
+     
+     func main() {
+        // Register functions can register any custom runtime environment.
+        // Note: The Register method must be invoked before calling the Set method.
+        environment.Register("foo")    
+     }
+     ```
+ 
+ 4. How to ensure that the runtime environment is not accidentally modified?
+ 
+    ```go
+    package main
+    
+    import (
+       "github.com/edoger/zkits-environment"
+    )
+    
+    func main() {
+       // Lock locks the current runtime environment.
+       // After locking, the current runtime environment cannot be changed.
+       environment.Lock()
+       // SetAndLock sets and locks the current runtime environment.
+       // If the runtime environment settings fail, they are not locked.
+       err := environment.SetAndLock(environment.Testing)
+       if err != nil {
+            // Handle error.
+       }
+    }
+    ```
+ 
+ 5. Want to be notified when the runtime environment changes?
 
- 3. These are the runtime environments that are already built in and registered.
+    ```go
+    package main
+    
+    import (
+       "github.com/edoger/zkits-environment"
+    )
+    
+    func main() {
+       // Listen adds a given runtime environment listener.
+       // When the runtime environment changes, all registered listeners will be executed.
+       environment.Listen(func(current, old environment.Env) {
+            // Do something! 
+       })
+    }
+    ```
+ 
+ 6. How does my system manage the runtime environment by itself?
+
+    ```go
+    package main
+    
+    import (
+       "github.com/edoger/zkits-environment"
+    )
+    
+    func main() {
+       // New creates and returns a new instance of the runtime environment manager.
+       // The default runtime environment is Development, and all built-in runtime environments
+       // have been registered.
+       // The runtime environment manager has all the functions and methods of the same name!
+       manager := environment.New()
+    }
+    ```
+ 
+ 7. What are the built-in runtime environments?
     ```
     environment.Development  // "development"
     environment.Testing      // "testing"
