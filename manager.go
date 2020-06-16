@@ -64,6 +64,13 @@ func New() Manager {
 	}
 }
 
+// NewEmpty creates and returns an empty instance of the runtime environment manager.
+// The manager returned by this function does not register any runtime environment,
+// and the current runtime environment is empty.
+func NewEmpty() Manager {
+	return new(manager)
+}
+
 // Listener defines the runtime environment listener.
 // Listeners are used to receive notifications when the runtime environment changes.
 type Listener func(current, old Env)

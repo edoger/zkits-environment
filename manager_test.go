@@ -23,3 +23,9 @@ func TestNew(t *testing.T) {
 		t.Fatal("New() return nil")
 	}
 }
+
+func TestNewEmpty(t *testing.T) {
+	if m := NewEmpty(); m == nil {
+		t.Fatal("NewEmpty() return nil")
+	}
+}
