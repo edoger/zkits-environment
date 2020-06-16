@@ -121,6 +121,10 @@ Let's manage the runtime environment more conveniently within the application.
        // have been registered.
        // The runtime environment manager has all the functions and methods of the same name!
        manager := environment.New()
+       // NewEmpty creates and returns an empty instance of the runtime environment manager.
+       // The manager returned by this function does not register any runtime environment,
+       // and the current runtime environment is empty.
+       empty := environment.NewEmpty()
     }
     ```
  
