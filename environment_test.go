@@ -15,6 +15,7 @@
 package environment
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -187,7 +188,7 @@ func TestDefaultManager(t *testing.T) {
 			if after != Testing || before != Development {
 				t.Fatalf("Listen(): after %v, before %v", after, before)
 			}
-			n = 1
+			n++
 		})
 
 		if err := Set(Testing); err != nil {
@@ -195,6 +196,53 @@ func TestDefaultManager(t *testing.T) {
 		}
 		if n != 1 {
 			t.Fatalf("Listen(): %d", n)
+		}
+	}, func() {
+		var ss []string
+
+		Listen(func(after, before Env) { ss = append(ss, "TEST") })
+		if UnListen() == nil {
+			t.Fatal("UnListen(): nil")
+		}
+
+		Listen(func(after, before Env) { ss = append(ss, "A") })
+		Listen(func(after, before Env) { ss = append(ss, "B") })
+		Listen(func(after, before Env) { ss = append(ss, "C") })
+
+		if err := Set(Testing); err != nil {
+			t.Fatalf("Set(): %s", err)
+		}
+		if got := strings.Join(ss, "-"); got != "A-B-C" {
+			t.Fatalf("Listen(): %s", got)
+		}
+
+		if UnListen() == nil {
+			t.Fatal("UnListen(): nil")
+		}
+
+		if err := Set(Prerelease); err != nil {
+			t.Fatalf("Set(): %s", err)
+		}
+		if got := strings.Join(ss, "-"); got != "A-B-C-A-B" {
+			t.Fatalf("Listen(): %s", got)
+		}
+
+		if got := len(UnListenAll()); got != 2 {
+			t.Fatalf("UnListenAll(): %d", got)
+		}
+
+		if err := Set(Production); err != nil {
+			t.Fatalf("Set(): %s", err)
+		}
+		if got := strings.Join(ss, "-"); got != "A-B-C-A-B" {
+			t.Fatalf("Listen(): %s", got)
+		}
+
+		if UnListen() != nil {
+			t.Fatal("UnListen(): not nil")
+		}
+		if got := len(UnListenAll()); got != 0 {
+			t.Fatalf("UnListenAll(): %d", got)
 		}
 	})
 }
