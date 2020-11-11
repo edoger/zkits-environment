@@ -19,160 +19,182 @@ import (
 )
 
 func TestEnv_String(t *testing.T) {
-	var env Env
-	if got := env.String(); got != "" {
-		t.Fatal(got)
+	items := []struct {
+		Given Env
+		Want  string
+	}{
+		{Development, "development"},
+		{Testing, "testing"},
+		{Prerelease, "prerelease"},
+		{Production, "production"},
+		{Env("test"), "test"},
+		{}, // For zero value.
 	}
 
-	env = "test"
-	if got := env.String(); got != "test" {
-		t.Fatal(got)
+	for _, item := range items {
+		if got := item.Given.String(); got != item.Want {
+			t.Fatalf("Env.String(): want %s, got %s", item.Want, got)
+		}
 	}
 }
 
 func TestEnv_Is(t *testing.T) {
-	var env Env
-	if !env.Is("") {
-		t.Fatal("FALSE")
+	env := Testing
+	items := []struct {
+		Given Env
+		Want  bool
+	}{
+		{Development, false},
+		{Testing, true},
+		{Prerelease, false},
+		{Production, false},
+		{}, // For zero value.
 	}
 
-	env = "test"
-	if !env.Is("test") {
-		t.Fatal("FALSE")
+	for _, item := range items {
+		if got := env.Is(item.Given); got != item.Want {
+			t.Fatalf("Env.Is(): want %v, got %v", item.Want, got)
+		}
 	}
 }
 
 func TestEnv_In(t *testing.T) {
-	var env Env
-	if env.In(nil) {
-		t.Fatal("TRUE")
+	env := Testing
+	items := []struct {
+		Given []Env
+		Want  bool
+	}{
+		{[]Env{Development}, false},
+		{[]Env{Testing}, true},
+		{[]Env{Prerelease}, false},
+		{[]Env{Production}, false},
+		{[]Env{Development, Testing}, true},
+		{[]Env{Development, Prerelease, Production}, false},
+		{}, // For zero value.
 	}
 
-	env = "test"
-	if !env.In([]Env{"test"}) {
-		t.Fatal("FALSE")
+	for _, item := range items {
+		if got := env.In(item.Given); got != item.Want {
+			t.Fatalf("Env.In(): want %v, got %v", item.Want, got)
+		}
 	}
-}
-
-func doTestDefaultManager(t *testing.T, f func()) {
-	if defaultManager == nil {
-		t.Fatal("Default manager is nil")
-	}
-	defer func() { defaultManager = New() }()
-	f()
 }
 
 func TestDefaultManager(t *testing.T) {
-	doTestDefaultManager(t, func() {
-		// The default runtime environment is Development!
+	do := func(fs ...func()) {
+		defer func() { defaultManager = New() }()
+
+		for _, f := range fs {
+			defaultManager = New()
+			f()
+			if defaultManager == nil {
+				t.Fatal("Default manager is nil")
+			}
+		}
+	}
+
+	do(func() {
 		if got := Get(); got != Development {
-			t.Fatal(got)
+			t.Fatalf("Get(): %v", got)
 		}
-
-		list := []Env{Development, Testing, Prerelease, Production}
-		for _, env := range list {
-			if err := Set(env); err != nil {
-				t.Fatal(err)
-			}
-			if got := Get(); got != env {
-				t.Fatal(got)
-			}
+	}, func() {
+		if got := Is(Development); got != true {
+			t.Fatalf("Is(): %v", got)
 		}
-
-		if err := Set("foo"); err == nil {
-			t.Fatal("No error")
-		} else {
-			if err != ErrInvalidEnv {
-				t.Fatal(err)
-			}
+		if got := Is(Production); got != false {
+			t.Fatalf("Is(): %v", got)
 		}
-
-		Register("foo")
-		if err := Set("foo"); err != nil {
-			t.Fatal(err)
+	}, func() {
+		if got := In([]Env{Development}); got != true {
+			t.Fatalf("In(): %v", got)
 		}
+		if got := In([]Env{Production, Development}); got != true {
+			t.Fatalf("In(): %v", got)
+		}
+		if got := In([]Env{Production}); got != false {
+			t.Fatalf("In(): %v", got)
+		}
+		if got := In([]Env{Production, Testing}); got != false {
+			t.Fatalf("In(): %v", got)
+		}
+	})
 
-		if Locked() {
-			t.Fatal("Locked")
+	do(func() {
+		if got := Locked(); got != false {
+			t.Fatalf("Locked(): %v", got)
 		}
 
 		Lock()
-		if !Locked() {
-			t.Fatal("Not Locked")
-		}
 
-		for _, env := range list {
-			if err := Set(env); err == nil {
-				t.Fatal("No error")
-			} else {
-				if err != ErrLocked {
-					t.Fatal(err)
-				}
-			}
-		}
-		if err := Set("foo"); err == nil {
-			t.Fatal("No error")
-		} else {
-			if err != ErrLocked {
-				t.Fatal(err)
-			}
+		if got := Locked(); got != true {
+			t.Fatalf("Locked(): %v", got)
 		}
 	})
 
-	doTestDefaultManager(t, func() {
-		if Locked() {
-			t.Fatal("Locked")
+	do(func() {
+		items := []Env{Development, Testing, Prerelease, Production}
+
+		for _, env := range items {
+			if err := Set(env); err != nil {
+				t.Fatalf("Set(): %s", err)
+			}
+		}
+	}, func() {
+		if err := Set("unknown"); err == nil {
+			t.Fatal("Set(): no error")
+		} else {
+			if err != ErrInvalidEnv {
+				t.Fatalf("Set(): %s", err)
+			}
 		}
 
-		// The default runtime environment is Development!
-		if got := Get(); got != Development {
-			t.Fatal(got)
-		}
+		Register("unknown")
 
+		if err := Set("unknown"); err != nil {
+			t.Fatalf("Set(): %s", err)
+		}
+	}, func() {
+		Lock()
+
+		if err := Set(Testing); err == nil {
+			t.Fatal("Set(): no error")
+		} else {
+			if err != ErrLocked {
+				t.Fatalf("Set(): %s", err)
+			}
+		}
+	}, func() {
 		if err := SetAndLock(Testing); err != nil {
-			t.Fatal(err)
+			t.Fatalf("SetAndLock(): %s", err)
 		}
-		if !Locked() {
-			t.Fatal("Not Locked")
-		}
-		if got := Get(); got != Testing {
-			t.Fatal(got)
+
+		if got := Locked(); got != true {
+			t.Fatalf("Locked(): %v", got)
 		}
 
 		if err := SetAndLock(Production); err == nil {
-			t.Fatal("No error")
+			t.Fatal("SetAndLock(): no error")
 		} else {
 			if err != ErrLocked {
-				t.Fatal(err)
+				t.Fatalf("SetAndLock(): %s", err)
 			}
 		}
 	})
 
-	doTestDefaultManager(t, func() {
+	do(func() {
 		var n int
-		Listen(func(current, old Env) {
-			if current != Testing {
-				t.Fatal(current)
-			}
-			if old != Development {
-				t.Fatal(old)
+		Listen(func(after, before Env) {
+			if after != Testing || before != Development {
+				t.Fatalf("Listen(): after %v, before %v", after, before)
 			}
 			n = 1
 		})
 
-		// The default runtime environment is Development!
-		if got := Get(); got != Development {
-			t.Fatal(got)
-		}
 		if err := Set(Testing); err != nil {
-			t.Fatal(err)
+			t.Fatalf("Listen(): %s", err)
 		}
-		if got := Get(); got != Testing {
-			t.Fatal(got)
-		}
-
 		if n != 1 {
-			t.Fatal(n)
+			t.Fatalf("Listen(): %d", n)
 		}
 	})
 }
