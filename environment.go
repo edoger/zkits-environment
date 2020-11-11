@@ -58,6 +58,14 @@ func (e Env) In(envs []Env) bool {
 // Get returns the current runtime environment.
 func Get() Env { return defaultManager.Get() }
 
+// Is returns whether the given runtime environment is equal to the
+// current runtime environment.
+func Is(env Env) bool { return defaultManager.Is(env) }
+
+// In returns whether the current runtime environment is in the given
+// runtime environment list.
+func In(envs []Env) bool { return defaultManager.In(envs) }
+
 // Register registers a custom runtime environment.
 // If you want to add a custom environment, this method must be called
 // before the Set() method.

@@ -36,6 +36,14 @@ type Manager interface {
 	// Get method returns the current runtime environment.
 	Get() Env
 
+	// Is returns whether the given runtime environment is equal to the
+	// current runtime environment.
+	Is(Env) bool
+
+	// In returns whether the current runtime environment is in the given
+	// runtime environment list.
+	In(envs []Env) bool
+
 	// Register method registers a custom runtime environment.
 	// If you want to add a custom environment, this method must be called
 	// before the Manager.Set() method.
@@ -84,7 +92,7 @@ type Listener func(after, before Env)
 
 // This is a built-in runtime environment manager.
 type manager struct {
-	mutex      sync.RWMutex
+	mutex      sync.Mutex
 	current    Env
 	locked     int32
 	registered []Env
@@ -93,10 +101,19 @@ type manager struct {
 
 // Get method returns the current runtime environment.
 func (m *manager) Get() Env {
-	m.mutex.RLock()
-	defer m.mutex.RUnlock()
-
 	return m.current
+}
+
+// Is returns whether the given runtime environment is equal to the
+// current runtime environment.
+func (m *manager) Is(env Env) bool {
+	return m.current.Is(env)
+}
+
+// In returns whether the current runtime environment is in the given
+// runtime environment list.
+func (m *manager) In(envs []Env) bool {
+	return m.current.In(envs)
 }
 
 // Register method registers a custom runtime environment.
