@@ -102,7 +102,7 @@ Let's manage the runtime environment more conveniently within the application.
     func main() {
        // Listen adds a given runtime environment listener.
        // When the runtime environment changes, all registered listeners will be executed.
-       environment.Listen(func(current, old environment.Env) {
+       environment.Listen(func(after, before environment.Env) {
             // Do something! 
        })
     }
