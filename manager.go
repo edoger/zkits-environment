@@ -80,7 +80,7 @@ func NewEmpty() Manager {
 
 // Listener defines the runtime environment listener.
 // Listeners are used to receive notifications when the runtime environment changes.
-type Listener func(current, old Env)
+type Listener func(after, before Env)
 
 // This is a built-in runtime environment manager.
 type manager struct {
