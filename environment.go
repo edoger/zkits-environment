@@ -88,4 +88,13 @@ func Set(env Env) error { return defaultManager.Set(env) }
 func SetAndLock(env Env) error { return defaultManager.SetAndLock(env) }
 
 // Listen adds a given runtime environment listener.
+// If the given listener is nil, ignore it.
 func Listen(listener Listener) { defaultManager.Listen(listener) }
+
+// UnListen removes and returns to the recently added listener.
+// If there is no listener to be removed, nil is returned.
+func UnListen() Listener { return defaultManager.UnListen() }
+
+// UnListenAll removes and returns all added listeners.
+// If there is no listener to be removed, nil is returned.
+func UnListenAll() []Listener { return defaultManager.UnListenAll() }

@@ -66,7 +66,16 @@ type Manager interface {
 	SetAndLock(Env) error
 
 	// Listen method adds a given runtime environment listener.
+	// If the given listener is nil, ignore it.
 	Listen(Listener)
+
+	// UnListen removes and returns to the recently added listener.
+	// If there is no listener to be removed, nil is returned.
+	UnListen() Listener
+
+	// UnListenAll removes and returns all added listeners.
+	// If there is no listener to be removed, nil is returned.
+	UnListenAll() []Listener
 }
 
 // New creates and returns a new instance of the built-in runtime environment manager.
@@ -186,9 +195,41 @@ func (m *manager) set(env Env) error {
 }
 
 // Listen method adds a given runtime environment listener.
+// If the given listener is nil, ignore it.
 func (m *manager) Listen(listener Listener) {
+	if listener != nil {
+		m.mutex.Lock()
+		m.listeners = append(m.listeners, listener)
+		m.mutex.Unlock()
+	}
+}
+
+// UnListen removes and returns to the recently added listener.
+// If there is no listener to be removed, nil is returned.
+func (m *manager) UnListen() (r Listener) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	m.listeners = append(m.listeners, listener)
+	if n := len(m.listeners) - 1; n >= 0 {
+		r = m.listeners[n]
+		if n == 0 {
+			m.listeners = nil
+		} else {
+			m.listeners = m.listeners[:n]
+		}
+	}
+	return
+}
+
+// UnListenAll removes and returns all added listeners.
+// If there is no listener to be removed, nil is returned.
+func (m *manager) UnListenAll() (r []Listener) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	if len(m.listeners) > 0 {
+		r = m.listeners
+		m.listeners = nil
+	}
+	return
 }
