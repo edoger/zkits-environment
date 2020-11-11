@@ -24,6 +24,7 @@ var (
 	// ErrInvalidEnv represents that the given runtime environment is not
 	// registered or supported.
 	ErrInvalidEnv = errors.New("invalid runtime environment")
+
 	// ErrLocked indicates that the current runtime environment is locked
 	// and cannot be changed.
 	ErrLocked = errors.New("locked runtime environment")
@@ -34,22 +35,28 @@ var (
 type Manager interface {
 	// Get method returns the current runtime environment.
 	Get() Env
+
 	// Register method registers a custom runtime environment.
 	// If you want to add a custom environment, this method must be called
 	// before the Manager.Set() method.
 	Register(Env)
+
 	// Lock method locks the current runtime environment.
 	// After locking, the current runtime environment cannot be changed.
 	Lock()
+
 	// Locked method returns whether the current runtime environment is locked.
 	Locked() bool
+
 	// Set method sets the current runtime environment.
 	// If the given runtime environment is not supported, ErrInvalidEnv error is returned.
 	// If the current runtime environment is locked, ErrLocked error is returned.
 	Set(Env) error
+
 	// SetAndLock method sets and locks the current runtime environment.
 	// If the runtime environment settings fail, they are not locked.
 	SetAndLock(Env) error
+
 	// Listen method adds a given runtime environment listener.
 	Listen(Listener)
 }
