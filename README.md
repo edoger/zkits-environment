@@ -22,121 +22,64 @@ In some large-scale applications, it is impossible to do so.
 This library is to solve this problem. 
 Let's manage the runtime environment more conveniently within the application.
 
+## Install ##
+
+```sh
+go get -u -v github.com/edoger/zkits-environment
+```
+
 ## Usage ##
 
- 1. Install package.
- 
-    ```sh
-    go get -u -v github.com/edoger/zkits-environment
-    ```
- 
- 2. Simply get and set up the global runtime environment.
- 
-    ```go
-    package main
+```go
+package main
         
-    import (
-       "github.com/edoger/zkits-environment"
-    )
-    
-    func main() {
-       // Get the current runtime environment.
-       environment.Get() 
-       // Set the runtime environment value.
-       // If the given runtime environment is not supported, ErrInvalidEnv error is returned.
-       // If the current runtime environment is locked, ErrLocked error is returned.
-       err := environment.Set(environment.Testing)
-       if err != nil {
-           // Handle error.
-       }
-    }
-    ```
- 
- 3. How do I customize the runtime environment?
- 
-    ```go
-     package main
-         
-     import (
-        "github.com/edoger/zkits-environment"
-     )
-     
-     func main() {
-        // Register functions can register any custom runtime environment.
-        // Note: The Register method must be invoked before calling the Set method.
-        environment.Register("foo")    
-     }
-     ```
- 
- 4. How to ensure that the runtime environment is not accidentally modified?
- 
-    ```go
-    package main
-    
-    import (
-       "github.com/edoger/zkits-environment"
-    )
-    
-    func main() {
-       // Lock locks the current runtime environment.
-       // After locking, the current runtime environment cannot be changed.
-       environment.Lock()
-       // SetAndLock sets and locks the current runtime environment.
-       // If the runtime environment settings fail, they are not locked.
-       err := environment.SetAndLock(environment.Testing)
-       if err != nil {
-            // Handle error.
-       }
-    }
-    ```
- 
- 5. Want to be notified when the runtime environment changes?
+import (
+    "github.com/edoger/zkits-environment"
+)
 
-    ```go
-    package main
-    
-    import (
-       "github.com/edoger/zkits-environment"
-    )
-    
-    func main() {
-       // Listen adds a given runtime environment listener.
-       // When the runtime environment changes, all registered listeners will be executed.
-       environment.Listen(func(after, before environment.Env) {
-            // Do something! 
-       })
-    }
-    ```
- 
- 6. How does my system manage the runtime environment by itself?
+func main() {
+    // Get the current runtime environment.
+    environment.Get() 
 
-    ```go
-    package main
-    
-    import (
-       "github.com/edoger/zkits-environment"
-    )
-    
-    func main() {
-       // New creates and returns a new instance of the runtime environment manager.
-       // The default runtime environment is Development, and all built-in runtime environments
-       // have been registered.
-       // The runtime environment manager has all the functions and methods of the same name!
-       manager := environment.New()
-       // NewEmpty creates and returns an empty instance of the runtime environment manager.
-       // The manager returned by this function does not register any runtime environment,
-       // and the current runtime environment is empty.
-       empty := environment.NewEmpty()
-    }
-    ```
- 
- 7. What are the built-in runtime environments?
-    ```
-    environment.Development  // "development"
-    environment.Testing      // "testing"
-    environment.Prerelease   // "prerelease"
-    environment.Production   // "production"
-    ```
+    // Set the runtime environment value.
+    // If the given runtime environment is not supported, ErrInvalidEnv error is returned.
+    // If the current runtime environment is locked, ErrLocked error is returned.
+    // environment.Development  // "development"
+    // environment.Testing      // "testing"
+    // environment.Prerelease   // "prerelease"
+    // environment.Production   // "production"
+    environment.Set(environment.Testing)
+
+    // Register functions can register any custom runtime environment.
+    // Note: The Register method must be invoked before calling the Set method.
+    environment.Register("foo")
+    environment.Registered("foo") // true
+
+    // Lock locks the current runtime environment.
+    // After locking, the current runtime environment cannot be changed.
+    environment.Lock()
+    // SetAndLock sets and locks the current runtime environment.
+    // If the runtime environment settings fail, they are not locked.
+    environment.SetAndLock(environment.Testing)
+
+    // Listen adds a given runtime environment listener.
+    // When the runtime environment changes, all registered listeners will be executed.
+    environment.Listen(func(after, before environment.Env) {
+        // Do something! 
+    })
+
+    // New creates and returns a new instance of the runtime environment manager.
+    // The default runtime environment is Development, and all built-in runtime environments
+    // have been registered.
+    // The runtime environment manager has all the functions and methods of the same name!
+    manager := environment.New()
+
+    // NewEmpty creates and returns an empty instance of the runtime environment manager.
+    // The manager returned by this function does not register any runtime environment,
+    // and the current runtime environment is empty.
+    empty := environment.NewEmpty()
+}
+```
 
 ## License ##
 
