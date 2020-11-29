@@ -149,7 +149,13 @@ func TestDefaultManager(t *testing.T) {
 			}
 		}
 
+		if got := Registered("unknown"); got != false {
+			t.Fatalf("Registered(): %v", got)
+		}
 		Register("unknown")
+		if got := Registered("unknown"); got != true {
+			t.Fatalf("Registered(): %v", got)
+		}
 
 		if err := Set("unknown"); err != nil {
 			t.Fatalf("Set(): %s", err)

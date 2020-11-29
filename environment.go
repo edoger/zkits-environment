@@ -71,6 +71,9 @@ func In(envs []Env) bool { return defaultManager.In(envs) }
 // before the Set() method.
 func Register(env Env) { defaultManager.Register(env) }
 
+// Registered determines whether the given runtime environment is already registered.
+func Registered(env Env) bool { return defaultManager.Registered(env) }
+
 // Lock locks the current runtime environment.
 // After locking, the current runtime environment cannot be changed.
 func Lock() { defaultManager.Lock() }

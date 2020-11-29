@@ -49,6 +49,9 @@ type Manager interface {
 	// before the Manager.Set() method.
 	Register(Env)
 
+	// Registered determines whether the given runtime environment is already registered.
+	Registered(Env) bool
+
 	// Lock method locks the current runtime environment.
 	// After locking, the current runtime environment cannot be changed.
 	Lock()
@@ -101,7 +104,7 @@ type Listener func(after, before Env)
 
 // This is a built-in runtime environment manager.
 type manager struct {
-	mutex      sync.Mutex
+	mutex      sync.RWMutex
 	current    Env
 	locked     int32
 	registered []Env
@@ -135,6 +138,14 @@ func (m *manager) Register(env Env) {
 	if !env.In(m.registered) {
 		m.registered = append(m.registered, env)
 	}
+}
+
+// Registered determines whether the given runtime environment is already registered.
+func (m *manager) Registered(env Env) bool {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
+	return env.In(m.registered)
 }
 
 // Lock method locks the current runtime environment.
