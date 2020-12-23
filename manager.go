@@ -23,11 +23,11 @@ import (
 var (
 	// ErrInvalidEnv represents that the given runtime environment is not
 	// registered or supported.
-	ErrInvalidEnv = errors.New("invalid runtime environment")
+	ErrInvalidEnv = errors.New("environment: invalid env")
 
 	// ErrLocked indicates that the current runtime environment is locked
 	// and cannot be changed.
-	ErrLocked = errors.New("locked runtime environment")
+	ErrLocked = errors.New("environment: locked")
 )
 
 // Manager interface type defines a runtime environment manager.
