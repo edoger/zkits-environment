@@ -34,6 +34,16 @@ const (
 // The global default runtime environment manager.
 var defaultManager = New()
 
+// SetDefaultManager sets the global default runtime environment manager instance.
+func SetDefaultManager(m Manager) {
+	defaultManager = m
+}
+
+// GetDefaultManager returns the global default runtime environment manager instance.
+func GetDefaultManager() Manager {
+	return defaultManager
+}
+
 // Env type defines the runtime environment.
 type Env string
 

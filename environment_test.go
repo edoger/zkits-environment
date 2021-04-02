@@ -19,6 +19,17 @@ import (
 	"testing"
 )
 
+func TestSetDefaultManager(t *testing.T) {
+	defer func() { defaultManager = New() }()
+	SetDefaultManager(NewEmpty())
+}
+
+func TestGetDefaultManager(t *testing.T) {
+	if GetDefaultManager() == nil {
+		t.Fatal("GetDefaultManager() return nil")
+	}
+}
+
 func TestEnv_String(t *testing.T) {
 	items := []struct {
 		Given Env
